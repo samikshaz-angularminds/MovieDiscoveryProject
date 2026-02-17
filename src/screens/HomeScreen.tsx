@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, ActivityIndicator, TouchableOpacity, Image, Text, View } from 'react-native';
+import {
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image,
+  Text,
+  View,
+  StyleSheet,
+} from 'react-native';
 import { fetchPopularMovies } from '../api/tmdb';
 import { useNavigation } from '@react-navigation/native';
-// import { styled } from 'nativewind/native';
-
-// const StyledView = styled(View);
-// const StyledText = styled(Text);
-// const StyledImage = styled(Image);
-// const StyledTouchable = styled(TouchableOpacity);
+import { Movie } from '../types/movie';
 
 export default function HomeScreen() {
-  const [movies, setMovies] = useState<m>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
@@ -24,25 +27,30 @@ export default function HomeScreen() {
     setLoading(false);
   };
 
+   const handleMoviePress = (movieId: number) => {
+    navigation.navigate('MovieDetail', { movieId }); // Now properly typed
+  };
+  
+
   useEffect(() => {
     loadMovies();
   }, []);
 
-  const renderItem = ({ item }) => (
-    <StyledTouchable
-      className="m-2"
-      onPress={() => navigation.navigate('Details', { movieId: item.id })}
+  const renderItem = ({ item }: { item: Movie }) => (
+    <TouchableOpacity
+      style={styles.movieContainer}
+      onPress={() => handleMoviePress(item.id )}
     >
-      <StyledImage
+      <Image
         source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-        className="w-40 h-60 rounded-lg"
+        style={styles.poster}
       />
-      <StyledText className="mt-2 text-white font-bold w-40">{item.title}</StyledText>
-    </StyledTouchable>
+      <Text style={styles.title}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
   return (
-    <StyledView className="flex-1 bg-black p-2">
+    <View style={styles.container}>
       <FlatList
         data={movies}
         keyExtractor={(item) => item.id.toString()}
@@ -50,8 +58,33 @@ export default function HomeScreen() {
         numColumns={2}
         onEndReached={loadMovies}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" color="white" /> : null}
+        ListFooterComponent={
+          loading ? <ActivityIndicator size="large" color="#fff" /> : null
+        }
       />
-    </StyledView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+    padding: 8,
+  },
+  movieContainer: {
+    margin: 8,
+    width: 160,
+  },
+  poster: {
+    width: 160,
+    height: 240,
+    borderRadius: 12,
+  },
+  title: {
+    marginTop: 8,
+    color: '#fff',
+    fontWeight: 'bold',
+    width: 160,
+  },
+});
